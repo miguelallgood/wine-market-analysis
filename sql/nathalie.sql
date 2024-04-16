@@ -43,7 +43,7 @@ CREATE TABLE Fact_vintages (
   ratings_avg INTEGER,
   ratings_count INTEGER,
   year INTEGER,
-  PRIMARY KEY (fk_vintages_id, fk_wine_id, fk_region_id, fk_country_id), -- Assuming composite key
+  PRIMARY KEY (fk_vintages_id),
   FOREIGN KEY (fk_vintages_id) REFERENCES Dim_vintages(vintages_id),
   FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
   FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
@@ -68,11 +68,11 @@ JOIN
 
 -- ANSWER 
 SELECT
-    dc.country_name,
+    dc.country_name,fv.year,
     AVG(fv.ratings_avg) AS avg_rating
 FROM
     Fact_vintages fv
 JOIN
     Dim_countries dc ON fv.fk_country_id = dc.country_code
 GROUP BY
-    dc.country_name;
+    dc.country_name, fv.year;
