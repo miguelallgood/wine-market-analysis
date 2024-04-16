@@ -25,8 +25,7 @@ GROUP BY
     dc.country_name;
 
 -- vintages average rating per country   
--- DIM/FACT: creation/population additional dim/facts tables
-     
+-- DIM/FACT: creation/population additional dim/facts tables    
 CREATE TABLE Dim_vintages (
   vintages_id INTEGER PRIMARY KEY,
   vintages_name VARCHAR
@@ -67,3 +66,13 @@ JOIN
 	wines w ON w.id = v.wine_id,
 	regions r ON w.region_id = r.id
 
+-- ANSWER 
+SELECT
+    dc.country_name,
+    AVG(fv.ratings_avg) AS avg_rating
+FROM
+    Fact_vintages fv
+JOIN
+    Dim_countries dc ON fv.fk_country_id = dc.country_code
+GROUP BY
+    dc.country_name;
