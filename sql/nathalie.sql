@@ -10,3 +10,15 @@ JOIN
 ORDER BY
     score DESC
 LIMIT 10;
+
+-- Question 6 answer
+-- wines average rating per country
+SELECT
+    dc.country_name,
+    AVG(fw.ratings_avg) AS avg_rating
+FROM
+    Fact_wines fw
+JOIN
+    Dim_countries dc ON fw.fk_country_id = dc.country_code
+GROUP BY
+    dc.country_name;
