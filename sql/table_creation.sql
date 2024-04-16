@@ -7,7 +7,8 @@ CREATE TABLE Dim_wines (
 CREATE TABLE Dim_regions (
   region_id INTEGER PRIMARY KEY,
   fk_country_id INTEGER,
-  region_name VARCHAR
+  region_name VARCHAR,
+  FOREIGN KEY (fk_country_id) REFERENCES Dim_countries(country_code)
 );
 
 CREATE TABLE Dim_countries (
@@ -23,7 +24,7 @@ CREATE TABLE Fact_wines (
   ratings_avg INTEGER,
   ratings_count INTEGER,
   calc_avg_price INTEGER,
-  PRIMARY KEY (fk_wine_id, fk_region_id, fk_country_id), -- Assuming composite key
+  PRIMARY KEY (fk_wine_id),
   FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
   FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
   FOREIGN KEY (fk_country_id) REFERENCES Dim_countries(country_id)
