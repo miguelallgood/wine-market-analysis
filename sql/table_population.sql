@@ -19,9 +19,9 @@ with avg_prices as(
 SELECT
     w.id,
     w.region_id,
+    r.country_code,
     w.ratings_average,
     w.ratings_count, 
-    r.country_code,
     a.price_avg as calc_avg_price 
 FROM
     wines w
