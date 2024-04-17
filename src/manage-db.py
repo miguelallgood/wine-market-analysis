@@ -3,6 +3,7 @@ import shutil
 import sqlite3
 
 from config import Config
+from utils.build_olap import transfer_data
 
 
 def main():
@@ -50,8 +51,53 @@ def fix_database():
 
 
 def update_olap():
-    print(Config.PATH_FIXED_DATABASE)
-    print(Config.PATH_OLAP_DATABASE)
+    # Dim Winery Name
+    transfer_data(
+        message="Creating Dim_Winery_Name in OLAP data warehouse...",
+        select_query="SELECT id, name FROM wineries",
+        table_creation="""
+        DROP TABLE IF EXISTS Dim_Winery_Name;
+        CREATE TABLE Dim_Winery_Name (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255)
+        );
+        """,
+        insert_query="INSERT INTO Dim_Winery_Name (id, name) VALUES (?, ?)"
+    )
+    # Fact Wineries
+    transfer_data(
+        message="Creating Fact_Wineries in OLAP data warehouse...",
+        select_query="""
+        SELECT
+            wines.winery_id,
+            ROUND(AVG(vintages.price_euros)) AS avg_price,         -- Average price rounded
+            AVG(vintages.ratings_average) AS avg_rating,           -- Average rating
+            SUM(vintages.ratings_count) AS total_ratings,          -- Sum of all ratings
+            ROUND(AVG(vintages.price_euros) *                      -- Calculated overall score
+                  AVG(vintages.ratings_average) *
+                  SUM(vintages.ratings_count)) AS overal_score,
+            COUNT(DISTINCT vintages.wine_id) AS num_of_wines       -- Count of distinct wines
+        FROM vintages
+        LEFT JOIN wines ON vintages.wine_id = wines.id
+        GROUP BY wines.winery_id;
+        """,
+        table_creation="""
+        DROP TABLE IF EXISTS Fact_Wineries;
+        CREATE TABLE Fact_Wineries (
+            winery INT,               -- FK
+            avg_price FLOAT,          -- Average price
+            avg_rating FLOAT,         -- Average rating
+            total_ratings INT,        -- Total number of ratings
+            overal_score INT,
+            num_of_wines INT,
+            FOREIGN KEY (winery) REFERENCES Dim_Winery_Name(id)
+        );
+        """,
+        insert_query="""
+        INSERT INTO Fact_Wineries (winery, avg_price, avg_rating, total_ratings, overal_score, num_of_wines) 
+        VALUES (?, ?, ?, ?, ?, ?)
+        """
+    )
     print("Updating OLAP data warehouse...")
 
 
