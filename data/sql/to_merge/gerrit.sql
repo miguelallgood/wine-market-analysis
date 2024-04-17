@@ -1,10 +1,18 @@
 -------------------------------------------------------
+-- Create table
+DROP TABLE IF EXISTS Dim_Winery_Name;
+CREATE TABLE Dim_Winery_Name (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255)
+);
 -- copy winery names to dim_winery names
 INSERT INTO Dim_Winery_Name (id, name)
 SELECT id, name
 FROM wineries;
 
 -- Insert data into Fact_Wineries by aggregating information from vintages and wines tables
+-- drop and create Fact_Wineries
+
 INSERT INTO Fact_Wineries (winery, avg_price, avg_rating, total_ratings, overal_score, num_of_wines)
 SELECT
     wines.winery_id,

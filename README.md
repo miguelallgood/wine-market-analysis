@@ -22,9 +22,9 @@ This project is about the company Wiwino, proudly active in the wine industry. D
 
 ## Table of Contents
 
-- [File structure 📜](#file-structure-📜)
+- [File structure 📝](#file-structure-📝)
 - [Streamlit🎈](#streamlit-🎈)
-- [Timeline📜 ](#timeline-📜)
+- [Timeline🕐 ](#timeline-🕐)
 
 ## 🤖 File Structure 
 
@@ -67,6 +67,6 @@ This project is about the company Wiwino, proudly active in the wine industry. D
 - [Gerrit Geeraerts ](https://github.com/GerritGeeraerts)
 - [Nathalie Nachtergaele](https://github.com/NathNacht)
 
-## 📜 Timeline
+## 🕐 Timeline
 
 This project was created in 5 days.
