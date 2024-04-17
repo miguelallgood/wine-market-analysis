@@ -29,5 +29,9 @@ FROM
 JOIN
     regions r ON w.region_id = r.id,
     avg_prices a ON w.id = a.wine_id;
+
+INSERT INTO Dim_grapes (grape_id, grape_name)
+SELECT DISTINCT id, name
+FROM grapes;  
    
 
