@@ -2,7 +2,7 @@ INSERT INTO Dim_wines (wine_id, wine_name)
 SELECT DISTINCT id, name
 FROM wines ;
 
-INSERT INTO Dim_regions (region_id, fk_country_id, region_name)
+INSERT INTO Dim_regions (region_id, fk_country_code, region_name)
 SELECT DISTINCT id, country_code, name
 FROM regions;
 
@@ -19,7 +19,7 @@ SELECT DISTINCT id, name
 FROM grapes;  
 
 
-INSERT INTO Fact_wines (fk_wine_id, fk_region_id, fk_country_id, ratings_avg, ratings_count, calc_avg_price, calc_weighted_rating)
+INSERT INTO Fact_wines (fk_wine_id, fk_region_id, fk_country_code, ratings_avg, ratings_count, calc_avg_price, calc_weighted_rating)
 WITH avg_prices AS(  
  	SELECT vintages.wine_id, avg(vintages.price_euros) AS price_avg
  	FROM vintages
@@ -40,7 +40,7 @@ JOIN
     avg_prices a ON w.id = a.wine_id;
 
 
-INSERT INTO Fact_vintages (fk_vintages_id, fk_wine_id, fk_region_id, fk_country_id, ratings_avg, ratings_count, year)
+INSERT INTO Fact_vintages (fk_vintages_id, fk_wine_id, fk_region_id, fk_country_code, ratings_avg, ratings_count, year)
 SELECT
     v.id,
     v.wine_id,
