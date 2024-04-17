@@ -41,9 +41,7 @@ This project is about the company Wiwino, proudly active in the wine industry. D
 │       │   ├── andrea.sql
 │       │   ├── gerrit.sql
 │       │   ├── miguel.sql
-│       │   ├── Q1.sql
-│       │   ├── Q5.sql
-│       │   ├── Q6.sql
+│       │   ├── nathalie.sql
 │       │   ├── tablecreation.sql
 │       │   └── tablepopulation.sql
 │       └── update-olap.sql

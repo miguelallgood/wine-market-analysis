@@ -16,11 +16,11 @@ FROM vintages ;
 
 INSERT INTO Dim_grapes (grape_id, grape_name)
 SELECT DISTINCT id, name
-FROM grapes;
+FROM grapes;  
 
 
 INSERT INTO Fact_wines (fk_wine_id, fk_region_id, fk_country_code, ratings_avg, ratings_count, calc_avg_price, calc_weighted_rating)
-WITH avg_prices AS(
+WITH avg_prices AS(  
  	SELECT vintages.wine_id, avg(vintages.price_euros) AS price_avg
  	FROM vintages
  	GROUP BY vintages.wine_id
@@ -30,9 +30,9 @@ SELECT
     w.region_id,
     r.country_code,
     w.ratings_average,
-    w.ratings_count,
+    w.ratings_count, 
     a.price_avg AS calc_avg_price,
-    w.ratings_count * w.ratings_average AS calc_weighted_rating
+    w.ratings_count * w.ratings_average AS calc_weighted_rating 
 FROM
     wines w
 JOIN
@@ -49,7 +49,7 @@ SELECT
     v.ratings_average,
     v.ratings_count,
     v.year
-
+ 
 FROM
     vintages v
 JOIN
@@ -60,4 +60,5 @@ JOIN
 INSERT INTO Fact_grapes (fk_grape_id, wines_count)
 SELECT grape_id, wines_count
 FROM most_used_grapes_per_country mugpc
-GROUP BY grape_id;
+GROUP BY grape_id; 
+   

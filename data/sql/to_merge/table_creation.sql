@@ -27,7 +27,7 @@ CREATE TABLE Dim_vintages (
 -- Dimension table Grapes Q5
 CREATE TABLE Dim_grapes (
   grape_id INTEGER PRIMARY KEY,
-  grape_name VARCHAR
+  grape_name VARCHAR  
 );
 
 -- Fact Table Wines Q1, Q6
