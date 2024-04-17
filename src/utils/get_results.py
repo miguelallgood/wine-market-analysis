@@ -1,12 +1,13 @@
 import pandas as pd
 
+from utils.db import select_query_to_pandas
+
 
 def highlight_top_wines(df):
     """
     Highlights 10 wines to increase sales based on specific criteria such as sales trends,
     ratings, and uniqueness.
     """
-    # Logic to be implemented later
     return pd.DataFrame()  # This will eventually return a DataFrame
 
 
@@ -19,13 +20,18 @@ def prioritize_country(df):
     return pd.DataFrame()  # This will eventually return a DataFrame
 
 
-def award_best_wineries(df):
+def award_best_wineries():
     """
     Selects 3 wineries to give awards based on criteria such as quality of wine,
     innovation, and contribution to the wine industry.
     """
-    # Logic to be implemented later
-    return pd.DataFrame()  # This will eventually return a DataFrame
+    df_results = select_query_to_pandas("""
+    SELECT dwn.name, fw.num_of_wines, fw.avg_rating, fw.total_ratings, fw.avg_price
+    FROM Fact_Wineries fw LEFT JOIN Dim_Winery_Name dwn ON fw.winery = dwn.id 
+    ORDER BY fw.overal_score DESC 
+    LIMIT 3  
+    """)
+    return df_results
 
 
 def find_wines_by_taste(df, keywords, min_users=10):
@@ -59,3 +65,7 @@ def recommend_cabernet_sauvignon(df):
     """
     # Logic to be implemented later
     return pd.DataFrame()  # This will eventually return a DataFrame
+
+
+if __name__ == "__main__":
+    print(award_best_wineries())

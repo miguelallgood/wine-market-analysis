@@ -3,7 +3,7 @@ import shutil
 import sqlite3
 
 from config import Config
-from utils.build_olap import transfer_data
+from utils.db import transfer_data_to_olap
 
 
 def main():
@@ -52,22 +52,22 @@ def fix_database():
 
 def update_olap():
     # Dim Winery Name
-    transfer_data(
+    transfer_data_to_olap(
         message="Creating Dim_Winery_Name in OLAP data warehouse...",
-        select_query="SELECT id, name FROM wineries",
-        table_creation="""
+        oltp_select_query="SELECT id, name FROM wineries",
+        olap_table_creation="""
         DROP TABLE IF EXISTS Dim_Winery_Name;
         CREATE TABLE Dim_Winery_Name (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255)
         );
         """,
-        insert_query="INSERT INTO Dim_Winery_Name (id, name) VALUES (?, ?)"
+        olap_insert_query="INSERT INTO Dim_Winery_Name (id, name) VALUES (?, ?)"
     )
     # Fact Wineries
-    transfer_data(
+    transfer_data_to_olap(
         message="Creating Fact_Wineries in OLAP data warehouse...",
-        select_query="""
+        oltp_select_query="""
         SELECT
             wines.winery_id,
             ROUND(AVG(vintages.price_euros)) AS avg_price,         -- Average price rounded
@@ -81,7 +81,7 @@ def update_olap():
         LEFT JOIN wines ON vintages.wine_id = wines.id
         GROUP BY wines.winery_id;
         """,
-        table_creation="""
+        olap_table_creation="""
         DROP TABLE IF EXISTS Fact_Wineries;
         CREATE TABLE Fact_Wineries (
             winery INT,               -- FK
@@ -93,7 +93,7 @@ def update_olap():
             FOREIGN KEY (winery) REFERENCES Dim_Winery_Name(id)
         );
         """,
-        insert_query="""
+        olap_insert_query="""
         INSERT INTO Fact_Wineries (winery, avg_price, avg_rating, total_ratings, overal_score, num_of_wines) 
         VALUES (?, ?, ?, ?, ?, ?)
         """

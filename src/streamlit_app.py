@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+
+from utils.get_results import award_best_wineries
 
 # Dummy Data Preparation
 # You can replace these with actual database queries or more complex data structures as needed.
@@ -19,13 +20,6 @@ marketing_priorities = pd.DataFrame({
     "Number of Wineries": [150, 120, 130, 160, 110],
     "Average Price": [30, 25, 45, 35, 28],
     "Marketing Score": [88, 85, 90, 87, 86]
-})
-
-winery_awards = pd.DataFrame({
-    "Winery": ["Domaine de la Romanée-Conti", "Penfolds", "Screaming Eagle"],
-    "Location": ["France", "Australia", "USA"],
-    "Average Rating": [4.9, 4.7, 4.8],
-    "Award Category": ["Lifetime Excellence", "Innovative Practices", "Consistent Quality"]
 })
 
 keyword_wines = pd.DataFrame({
@@ -96,7 +90,7 @@ elif view == "Marketing Priorities":
 
 elif view == "Winery Awards":
     st.header("Awards for Best Wineries")
-    st.table(winery_awards)
+    st.table(award_best_wineries())
 
 elif view == "Keyword Wines":
     st.header("Keyword-Related Wine Selection")
