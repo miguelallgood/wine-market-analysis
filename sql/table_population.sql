@@ -10,11 +10,11 @@ INSERT INTO Dim_wines (wine_id, wine_name)
 SELECT DISTINCT id, name
 FROM wines ;
 
-INSERT INTO Fact_wines (fk_wine_id, fk_region_id, fk_country_id, ratings_avg, ratings_count, calc_avg_price)
-with avg_prices as(  
- 	Select vintages.wine_id, avg(vintages.price_euros) as price_avg
- 	from vintages
- 	group by vintages.wine_id
+INSERT INTO Fact_wines (fk_wine_id, fk_region_id, fk_country_id, ratings_avg, ratings_count, calc_avg_price, calc_weighted_rating)
+WITH avg_prices AS(  
+ 	SELECT vintages.wine_id, avg(vintages.price_euros) AS price_avg
+ 	FROM vintages
+ 	GROUP BY vintages.wine_id
  	)
 SELECT
     w.id,
@@ -22,7 +22,8 @@ SELECT
     r.country_code,
     w.ratings_average,
     w.ratings_count, 
-    a.price_avg as calc_avg_price 
+    a.price_avg AS calc_avg_price,
+    w.ratings_count * w.ratings_average AS calc_weighted_rating 
 FROM
     wines w
 JOIN
