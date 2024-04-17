@@ -29,3 +29,8 @@ CREATE TABLE Fact_wines (
   FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
   FOREIGN KEY (fk_country_id) REFERENCES Dim_countries(country_id)
 );
+
+CREATE TABLE Dim_grapes (
+  grape_id INTEGER PRIMARY KEY,
+  grape_name VARCHAR  
+);
