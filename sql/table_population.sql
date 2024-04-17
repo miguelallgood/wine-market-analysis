@@ -54,11 +54,11 @@ FROM
     vintages v
 JOIN
 	wines w ON w.id = v.wine_id,
-	regions r ON w.region_id = r.id
+	regions r ON w.region_id = r.id;
 
 
 INSERT INTO Fact_grapes (fk_grape_id, wines_count)
 SELECT grape_id, wines_count
 FROM most_used_grapes_per_country mugpc
-GROUP BY grape_id 
+GROUP BY grape_id; 
    

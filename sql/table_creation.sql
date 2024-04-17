@@ -38,6 +38,7 @@ CREATE TABLE Fact_wines (
   ratings_avg INTEGER,
   ratings_count INTEGER,
   calc_avg_price INTEGER,
+  calc_weighted_rating INTEGER,
   PRIMARY KEY (fk_wine_id),
   FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
   FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
