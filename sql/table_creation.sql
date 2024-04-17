@@ -7,9 +7,9 @@ CREATE TABLE Dim_wines (
 -- Dimension table Regions Q6
 CREATE TABLE Dim_regions (
   region_id INTEGER PRIMARY KEY,
-  fk_country_id INTEGER,
+  fk_country_code INTEGER,
   region_name VARCHAR,
-  FOREIGN KEY (fk_country_id) REFERENCES Dim_countries(country_code)
+  FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
 );
 
 -- Dimension table Countries Q6
@@ -34,7 +34,7 @@ CREATE TABLE Dim_grapes (
 CREATE TABLE Fact_wines (
   fk_wine_id INTEGER,
   fk_region_id INTEGER,
-  fk_country_id INTEGER,
+  fk_country_code INTEGER,
   ratings_avg INTEGER,
   ratings_count INTEGER,
   calc_avg_price INTEGER,
@@ -42,7 +42,7 @@ CREATE TABLE Fact_wines (
   PRIMARY KEY (fk_wine_id),
   FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
   FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
-  FOREIGN KEY (fk_country_id) REFERENCES Dim_countries(country_id)
+  FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
 );
 
 -- Fact Table Vintages Q6
@@ -50,7 +50,7 @@ CREATE TABLE Fact_vintages (
   fk_vintages_id INTEGER,
   fk_wine_id INTEGER,
   fk_region_id INTEGER,
-  fk_country_id INTEGER,
+  fk_country_code INTEGER,
   ratings_avg INTEGER,
   ratings_count INTEGER,
   year INTEGER,
@@ -58,7 +58,7 @@ CREATE TABLE Fact_vintages (
   FOREIGN KEY (fk_vintages_id) REFERENCES Dim_vintages(vintages_id),
   FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
   FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
-  FOREIGN KEY (fk_country_id) REFERENCES Dim_countries(country_id)
+  FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
 );
 
 -- Fact Table Grapes Q5
