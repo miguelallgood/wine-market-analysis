@@ -34,3 +34,11 @@ CREATE TABLE Dim_grapes (
   grape_id INTEGER PRIMARY KEY,
   grape_name VARCHAR  
 );
+
+-- Fact Table
+CREATE TABLE Fact_grapes (
+  fk_grape_id INTEGER,
+  wines_count INTEGER,
+  PRIMARY KEY (fk_grape_id),
+  FOREIGN KEY (fk_grape_id) REFERENCES Dim_grapes(grape_id)
+);

@@ -33,5 +33,10 @@ JOIN
 INSERT INTO Dim_grapes (grape_id, grape_name)
 SELECT DISTINCT id, name
 FROM grapes;  
+
+INSERT INTO Fact_grapes (fk_grape_id, wines_count)
+SELECT grape_id, wines_count
+FROM most_used_grapes_per_country mugpc
+GROUP BY grape_id 
    
 
