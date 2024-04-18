@@ -2,17 +2,17 @@
 
 -- Create a new table to store associations between wines and grapes
 
-CREATE TABLE wine_grape_fact (
-  wine_id INTEGER NOT NULL,  -- Foreign key referencing the wines table
-  grape_id INTEGER NOT NULL, -- Foreign key referencing the grapes table
-  PRIMARY KEY (wine_id, grape_id), -- Define a composite primary key
-  FOREIGN KEY (wine_id) REFERENCES wines(id),  -- Define foreign key constraint for wine_id
-  FOREIGN KEY (grape_id) REFERENCES grapes(id) -- Define foreign key constraint for grape_id
+CREATE TABLE Fact_wine_grape (
+  fk_wine_id INTEGER NOT NULL,  -- Foreign key referencing the wines table
+  fk_grape_id INTEGER NOT NULL, -- Foreign key referencing the grapes table
+  PRIMARY KEY (fk_wine_id, fk_grape_id), -- Define a composite primary key
+  FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),  -- Define foreign key constraint for wine_id
+  FOREIGN KEY (fk_grape_id) REFERENCES Dim_grapes(grape_id) -- Define foreign key constraint for grape_id
 );
 
 -- Insert data into the wine_grape_fact table
 
-INSERT INTO wine_grape_fact (wine_id, grape_id)
+INSERT INTO wine_grape_fact (fk_wine_id, fk_grape_id)
 SELECT w.id, g.id
 FROM wines w
 INNER JOIN grapes g ON 
@@ -28,10 +28,10 @@ WHERE k.name LIKE 'Cabernet Sauvignon%'  -- Focus on relevant keywords
 -- Query to retrieve top 5 wines associated with the 'Cabernet Sauvignon' grape
 
 SELECT w.name AS wine_name, w.ratings_average, w.ratings_count
-FROM wines w
-INNER JOIN wine_grape_fact wg ON w.id = wg.wine_id
-INNER JOIN grapes g ON wg.grape_id = g.id
-WHERE g.name = 'Cabernet Sauvignon' -- Filter wines associated with the 'Cabernet Sauvignon' grape
+FROM Fact_wine_grape fwg
+INNER JOIN Dim_wine dw ON dw.wine_id = fwg.fk_wine_id
+INNER JOIN Dim_grapes dg ON dg.grape_id = fwg.fk_grape_id
+WHERE dg.grape_name = 'Cabernet Sauvignon' -- Filter wines associated with the 'Cabernet Sauvignon' grape
 ORDER BY w.ratings_average DESC, w.ratings_count DESC -- Order results by ratings_average and ratings_count
 LIMIT 5; -- Limit the results to the top 5 wines
 
