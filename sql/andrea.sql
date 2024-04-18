@@ -1,15 +1,6 @@
--- JUST CREATING THE STAR TABLE FOR THE QUERRIES, THIS WILL BE REDUDANT AT THE END
+-- Create Schema
+
 -- Dimension Tables
-
-CREATE TABLE Dim_wines (
-  wine_id INTEGER PRIMARY KEY,
-  wine_name VARCHAR
-);
-
-CREATE TABLE Dim_vintages (
-  vintage_id INTEGER PRIMARY KEY,
-  vintage_name VARCHAR
-);
 
 CREATE TABLE Dim_regions (
   region_id INTEGER PRIMARY KEY,
@@ -22,24 +13,23 @@ CREATE TABLE Dim_countries (
   country_name VARCHAR
 );
 
--- Fact Table
-CREATE TABLE Fact_vintages (
-  fk_wine_id INTEGER,
-  fk_vintages_id INTEGER,
-  fk_region_id INTEGER,
-  fk_country_code INTEGER,
-  year_harvest INTEGER,
-  ratings_average INTEGER,
-  ratings_count INTEGER,
-  price_euros INTEGER,  
-  
-  PRIMARY KEY (fk_vintages_id),
-  FOREIGN KEY (fk_vintages_id) REFERENCES Dim_vintages (vintage_id),
-  FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
-  FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
-  FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
+CREATE TABLE Dim_wines (
+  wine_id INTEGER PRIMARY KEY,
+  wine_name VARCHAR
 );
 
+CREATE TABLE Dim_vintages (
+  vintage_id INTEGER PRIMARY KEY,
+  vintage_name VARCHAR
+);
+
+
+CREATE TABLE Dim_toplists (
+	toplists_id INTEGER PRIMARY KEY,
+	toplists_name VARCHAR,
+	toplists_year INTEGER,
+	toplists_type_wine VARCHAR	
+	);
 
 CREATE TABLE Dim_flavor_groups (
 	flavor_groups_id INTEGER PRIMARY KEY,
@@ -51,6 +41,7 @@ CREATE TABLE Dim_keywords (
 	keywords_name VARCHAR
 );
 
+-- Fact Tables
 CREATE TABLE Fact_keywords_wine (
 	keyword_id INTEGER,
 	fk_flavor_groups INTEGER,
@@ -64,7 +55,30 @@ CREATE TABLE Fact_keywords_wine (
 );
 
 
--- Populating the above schema
+CREATE TABLE Fact_vintages (
+  fk_wine_id INTEGER,
+  fk_vintages_id INTEGER,
+  fk_region_id INTEGER,
+  fk_country_code INTEGER,
+  fk_last_toplist INTEGER,
+  year_harvest INTEGER,
+  ratings_average INTEGER,
+  ratings_count INTEGER,
+  price_euros INTEGER,
+  last_rank INTEGER,
+  
+  PRIMARY KEY (fk_vintages_id),
+  FOREIGN KEY (fk_vintages_id) REFERENCES Dim_vintages (vintage_id),
+  FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
+  FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
+  FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code),
+  FOREIGN KEY (fk_last_toplist) REFERENCES Dim_toplists(toplists_id)
+);
+
+-- Inserts
+
+-- Dimentions
+
 INSERT INTO Dim_countries (country_code, country_name)
 SELECT DISTINCT code, name
 FROM countries;
@@ -73,15 +87,53 @@ INSERT INTO Dim_regions (region_id, fk_country_id, region_name)
 SELECT DISTINCT id, country_code, name
 FROM regions;
 
+--OK
 INSERT INTO Dim_wines (wine_id, wine_name)
 SELECT DISTINCT id, name
 FROM wines ;
 
 INSERT INTO Dim_vintages (vintage_id, vintage_name)
 SELECT DISTINCT id, name
-FROM vintages
+FROM vintages;
 
-INSERT INTO Fact_vintages (fk_wine_id,fk_vintages_id, fk_region_id, fk_country_code, year_harvest, ratings_average, ratings_count, price_euros)
+INSERT INTO Dim_flavor_groups (flavor_groups_name)
+SELECT DISTINCT group_name 
+FROM keywords_wine;
+
+INSERT INTO Dim_keywords (keywords_id, keywords_name)
+SELECT DISTINCT id, name
+FROM keywords;
+
+INSERT INTO Dim_toplists (toplists_id, toplists_name, toplists_year, toplists_type_wine)
+SELECT 
+	id,
+	name,	
+    SUBSTRING(name, 10, 4),
+    TRIM(SUBSTRING(name, CHARINDEX(':', name)+1,100))
+FROM 
+   toplists 
+ WHERE country_code = 'global' AND name LIKE '%Vivino%';
+-- Facts
+
+INSERT INTO Fact_keywords_wine (keyword_id, fk_flavor_groups, fk_wine_id, count_keyword)
+SELECT DISTINCT kw.keyword_id, dfg.flavor_groups_id, kw.wine_id, kw.count  
+FROM keywords_wine kw
+JOIN Dim_flavor_groups dfg ON kw.group_name = dfg.flavor_groups_name
+
+
+INSERT INTO Fact_vintages (fk_wine_id,fk_vintages_id, fk_region_id, fk_country_code, year_harvest, ratings_average, ratings_count, price_euros, fk_last_toplist, last_rank)
+	WITH important_toplist AS (
+		SELECT vtr.vintage_id, MAX(toplists_id) as toplist_id, MAX(toplists_year) as toplist_year
+		FROM Dim_toplists dt 
+		JOIN vintage_toplists_rankings vtr ON dt.toplists_id  = vtr.top_list_id
+		GROUP BY vtr.vintage_id
+		),
+toplist_rank AS (
+		SELECT itl.vintage_id as vintage_id, itl.toplist_year, vtr.rank as rank, toplist_id
+		FROM important_toplist itl
+		JOIN vintage_toplists_rankings vtr
+		ON vtr.vintage_id = itl.vintage_id AND itl.toplist_id = vtr.top_list_id 
+		)
 SELECT
     v.wine_id,
     v.id,
@@ -90,67 +142,59 @@ SELECT
     v.year,
     v.ratings_average,
     v.ratings_count, 
-    v.price_euros
+    v.price_euros,
+    tlr.toplist_id,
+    tlr.rank
     
 FROM
     vintages v
 JOIN
-	wines w ON w.id = v.wine_id,
-    regions r ON w.region_id = r.id;
+	wines w ON w.id = v.wine_id JOIN
+    regions r ON w.region_id = r.id 
+    LEFT JOIN toplist_rank tlr ON tlr.vintage_id = v.id
 
 
-INSERT INTO Dim_keywords (keywords_id, keywords_name)
-SELECT DISTINCT id, name
-FROM keywords;
+
+-- Querries
+
+--Q1: We want to highlight 10 wines to increase our sales. Which ones should we choose and why?
+-- We want to set a little equation to see how diverse, of good quality, popular and revenue generator is a wine
+-- 79% of winelovers have no brand loyalty https://www.morningadvertiser.co.uk/Article/2015/09/17/79-of-wine-drinkers-don-t-have-any-brand-loyalty
 
 
-INSERT INTO Dim_flavor_groups (flavor_groups_name)
-SELECT DISTINCT group_name 
-FROM keywords_wine;
+SELECT name, ROUND(numb_vintages *total_count* avg_rating) AS measure, average_weighted_price, avg_rating, total_count, total_sale, numb_vintages  
+FROM sales_per_wine spw
+ORDER BY measure DESC
 
 
-INSERT INTO Fact_keywords_wine (keyword_id, fk_flavor_groups, fk_wine_id, count_keyword)
-SELECT DISTINCT kw.keyword_id, dfg.flavor_groups_id, kw.wine_id, kw.count  
-FROM keywords_wine kw
-JOIN Dim_flavor_groups dfg ON kw.group_name = dfg.flavor_groups_name
+-- second solution:
+-- Get the top 5 types of wine with the most reviews and return a list of 10 popular wines,
+--  inside those types that have a decent number of vintages
+-- Reasoning being: people change brands all the time, but like to keep to the same type of wines
+-- So if someone tried one of those, maybe they can try another one
+
+WITH top_types AS (
+SELECT fv.fk_wine_id AS wine_id, SUM(fv.ratings_count) as total_reviews, dt.toplists_type_wine as type_wine
+FROM Fact_vintages fv 
+JOIN Dim_toplists dt ON dt.toplists_id = fv.fk_last_toplist
+GROUP BY fv.fk_wine_id
+ORDER BY total_reviews DESC
+)
+
+SELECT top_types.wine_id, dw.wine_name, spw.total_count , type_wine, spw.average_weighted_price, spw.numb_vintages, spw.total_sale  
+FROM top_types
+JOIN Dim_wines dw ON dw.wine_id = top_types.wine_id
+JOIN sales_per_wine spw ON spw.name = dw.wine_name
+WHERE type_wine IN (SELECT DISTINCT type_wine
+FROM top_types
+LIMIT 5) 
+AND numb_vintages > 5
+ORDER BY total_count DESC
 
 
--- HERE STARTS THE QUERIES FOR THE QUESTIONS
-
---CREATES VIEW THAT AGGREGATES INFORMATION TO MEASURE "SALES" THIS IS USED IN Q1 AND Q2
-
-CREATE VIEW sales_per_wine AS
-	WITH Sales_vintage AS (
-		SELECT dw.wine_name AS name, 
-		fv.ratings_count AS volume, 
-		(fv.ratings_count* fv.price_euros) AS sales_euro, 
-		fv.fk_country_code AS country, 
-		fv.ratings_average as rating
-		FROM Fact_vintages fv  
-		JOIN Dim_wines dw ON dw.wine_id = fv.fk_wine_id)
-
-	SELECT 
-		name, 
-		COUNT(name) AS numb_vintages, 
-		country, 
-		ROUND(AVG(rating),1) as avg_rating, 
-		SUM(volume) AS total_count, 
-		ROUND(SUM(sales_euro),0) AS total_sale, 
-		ROUND(SUM(sales_euro)/SUM(volume),0) AS average_weighted_price
-		FROM Sales_vintage
-	GROUP BY name
-	ORDER BY total_sale DESC, total_count DESC
-
--- START WITH QUESTIONS
-
-
--- Q2: We have a limited marketing budget for this year. Which country should we prioritise and why?
-/* ANSWER: 
-FRANCE MOST USERS BUY FRENCH WINES AND THEY SPEND THE MOST WITH THEM
-AT THE SAME TIME, ITALY has more brand of wines, more vintages
-Italy sells more volume but the price is cheap
-R: Promote italy to drive prices up, france doesn't need more promoting.*/
--- Query:
+-- Second quesiton:
+-- We have a limited marketing budget for this year. Which country should we prioritise and why?
+-- Solution:
 
 CREATE VIEW Question_2 AS
 	SELECT 
@@ -164,21 +208,26 @@ CREATE VIEW Question_2 AS
 	GROUP BY country
 	ORDER BY sum_sales_euro DESC
 
+-- ANSWER: 
+-- FRANCE MOST USERS BUY FRENCH WINES AND THEY SPEND THE MOST WITH THEM
+-- AT THE SAME TIME, ITALY has more brand of wines, more vintages
+-- Italy sells more volume but the price is cheap
+-- I would promote italy to drive prices up.
 
-/* Q4:
- We detected that a big cluster of customers likes a specific combination of tastes. 
+
+/*We detected that a big cluster of customers likes a specific combination of tastes. 
  We identified a few keywords that match these tastes: 
  coffee, toast, green apple, cream, and citrus. 
- 1- We would like you to find all the wines that are related to these keywords. 
+ We would like you to find all the wines that are related to these keywords. 
  Check that at least 10 users confirm those keywords, 
  to ensure the accuracy of the selection. 
- 2- Additionally, identify an appropriate group name for this cluster.
+ Additionally, identify an appropriate group name for this cluster.
 */
 
-/* ANSWER PART 1: 
-  There are 19 wines that match all those flavors.
-*/ 
--- Query:
+-- ANSWER PART 1:
+-- WINES THAT MATCH ONE OR MORE OF THE FLAVORS
+-- MOST OF THE MATCHES FOR ALL FLAVORS ARE BRUT CHAMPAGNES
+
 /* First we do a temporary table to:
  * Remove duplicated rows of wine, keyword, count of keyword in Fact_keywords_wine
  * the reson why there is this duplication is because they have different group_flavor
@@ -216,17 +265,13 @@ GROUP BY wine_id
 ORDER BY n_matched_flavors DESC, wine ASC
 
 --If necessaryt he above can be turned into a temp_table and we just get the 
--- n_matched_flavors =5 = TO BE DISCUSSED
+-- n_matched_flavors =5
 
-/* ANSWER PART 2: 
-  From the 19 wines most were Champagne Brut.
-*/ 
+
     
--- Other approaches:   
--- Study the groups that usually match those keywords in all the wines, to guide the client
--- Answer: Citrus, Tree_fruit, Microbio, Oak, Non_oak
---Query:
-
+-- SECOND PART OF THE QUESTION: IDENTIFY GOOD FLAVOR GROUP NAME FOR THIS LIST OF FLAVORS
+    
+-- FIRST APPROACH IS TO STUDY THE GROUPS FOR THOSE KEYWORDS AND SEE THE OCCURENCES
     
 WITH flavors_count AS(
 SELECT 
@@ -242,3 +287,42 @@ SELECT
 SELECT flavor, groups, SUM(occurences)
 FROM flavors_count	
 GROUP BY flavor, groups
+
+-- SECOND APPROACH IS TO LOOK AT THE GROUPS FOR THE WINES PREVIOUSLY SELECTED
+
+WITH selected_wines AS (
+SELECT DISTINCT dw.wine_name AS wine, dw.wine_id AS wine_id
+FROM Fact_keywords_wine fkw 
+JOIN Dim_keywords dk ON dk.keywords_id = fkw.keyword_id 
+JOIN Dim_wines dw ON dw.wine_id = fkw.fk_wine_id 
+WHERE dk.keywords_name IN ('coffee', 'toast', 'green apple', 'cream', 'citrus') AND fkw.count_keyword >=10
+GROUP BY wine
+HAVING COUNT(DISTINCT dk.keywords_name) = 5
+ORDER BY wine ASC
+)
+SELECT DISTINCT dfg.flavor_groups_name, count (dfg.flavor_groups_name) as counting 
+FROM Dim_flavor_groups dfg 
+JOIN Fact_keywords_wine fkw ON fkw.fk_flavor_groups = dfg.flavor_groups_id 
+JOIN selected_wines sw ON sw.wine_id = fkw.fk_wine_id
+GROUP BY dfg.flavor_groups_name 
+ORDER BY counting DESC
+
+
+
+WITH selected_wines AS (
+SELECT DISTINCT dw.wine_name AS wine, dw.wine_id AS wine_id
+FROM Fact_keywords_wine fkw 
+JOIN Dim_keywords dk ON dk.keywords_id = fkw.keyword_id 
+JOIN Dim_wines dw ON dw.wine_id = fkw.fk_wine_id 
+WHERE dk.keywords_name IN ('coffee', 'toast', 'green apple', 'cream', 'citrus') AND fkw.count_keyword >=10
+GROUP BY wine
+HAVING COUNT(DISTINCT dk.keywords_name) = 5
+ORDER BY wine ASC
+)
+SELECT DISTINCT dfg.flavor_groups_name, sw.wine, sw.wine_id 
+FROM Dim_flavor_groups dfg 
+JOIN Fact_keywords_wine fkw ON fkw.fk_flavor_groups = dfg.flavor_groups_id 
+JOIN selected_wines sw ON sw.wine_id = fkw.fk_wine_id
+
+-- Third approach is just to say most of the wines in the 19 that matched all the flavors
+-- are champagne brut and that's what we are going to recommend the clients
