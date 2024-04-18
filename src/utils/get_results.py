@@ -106,12 +106,24 @@ def create_country_vintage_visual(df):
     return pd.DataFrame()  # Placeholder for a DataFrame containing the visuals
 
 
-def recommend_cabernet_sauvignon(df):
+def recommend_cabernet_sauvignon():
     """
     Recommends the top 5 Cabernet Sauvignon wines to a VIP client based on ratings and reviews.
     """
+
+    sql = """
+        SELECT dw.wine_name AS wine_name, fw.ratings_avg, fw.ratings_count
+        FROM Fact_wines fw
+        INNER JOIN Dim_wines dw ON dw.wine_id = fw.fk_wine_id
+        WHERE dw.wine_name LIKE 'Cabernet Sauvignon%'  
+        OR dw.wine_name LIKE '%Blend%' 
+        ORDER BY fw.ratings_avg DESC, fw.ratings_count DESC
+        LIMIT 5;
+        """
+    df_results = select_query_to_pandas(sql)
+
     # Logic to be implemented later
-    return pd.DataFrame()  # This will eventually return a DataFrame
+    return df_results
 
 
 if __name__ == "__main__":
