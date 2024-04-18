@@ -42,13 +42,60 @@ def find_wines_by_taste(df, keywords, min_users=10):
     return pd.DataFrame()  # This will eventually return a DataFrame
 
 
-def select_common_grapes_wines(df):
+# noinspection SqlDialectInspection,SqlNoDataSourceInspection
+def select_common_grapes_wines():
     """
     Identifies the top 3 most common grapes worldwide and lists the top 5 best-rated wines
     for each grape.
     """
+    sql = """
+    WITH 
+        top3grapes AS(
+    SELECT 
+        dg.grape_name AS grape_name 
+    FROM 
+        Fact_grapes fg 
+    JOIN 
+        Dim_grapes dg ON dg.grape_id = fg.fk_grape_id 
+    GROUP BY fg.fk_grape_id
+    ORDER BY fg.wines_count DESC 
+    LIMIT 3
+    ),
+        
+        wineratings AS(
+    SELECT 
+        dw.wine_name,
+        fw.calc_weighted_rating AS weighted_rating
+    FROM
+        Fact_wines fw 
+    JOIN
+        Dim_wines dw ON dw.wine_id = fw.fk_wine_id 
+    )
+    
+    SELECT
+        grape_name,
+        wine_name,
+        rating
+    FROM
+        (
+            SELECT
+                tgn.grape_name AS grape_name,
+                wr.wine_name AS wine_name,
+                wr.weighted_rating AS rating,            
+                ROW_NUMBER() OVER(PARTITION BY tgn.grape_name ORDER BY wr.weighted_rating DESC) AS row_num
+                
+            FROM
+                top3grapes tgn
+            JOIN
+                wineratings wr ON wr.wine_name LIKE '%' || tgn.grape_name || '%'
+        ) AS ranked_wines
+    WHERE
+        row_num <= 5;
+    """
+    df_results = select_query_to_pandas(sql)
+
     # Logic to be implemented later
-    return pd.DataFrame()  # This will eventually return a DataFrame
+    return df_results
 
 
 def create_country_vintage_visual(df):

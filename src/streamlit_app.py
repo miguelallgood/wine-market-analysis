@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from utils.get_results import award_best_wineries
+from utils.get_results import award_best_wineries, select_common_grapes_wines
 
 # Dummy Data Preparation
 # You can replace these with actual database queries or more complex data structures as needed.
@@ -64,7 +64,7 @@ view = st.sidebar.selectbox("Choose a view", [
     "Marketing Priorities",
     "Winery Awards",
     "Keyword Wines",
-    "Common Grapes",
+    "Top Rated Accessible Wines",
     "Country & Vintage Ratings",
     "VIP Recommendations"
 ])
@@ -96,9 +96,9 @@ elif view == "Keyword Wines":
     st.header("Keyword-Related Wine Selection")
     st.table(keyword_wines)
 
-elif view == "Common Grapes":
-    st.header("Global Wine Accessibility")
-    st.table(common_grapes)
+elif view == "Top Rated Accessible Wines":
+    st.header("Top Rated Wines from Worldwide Grapes")
+    st.table(select_common_grapes_wines())
 
 elif view == "Country & Vintage Ratings":
     st.header("Country and Vintage Leaderboard")
