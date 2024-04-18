@@ -9,4 +9,4 @@ class Config:
     PATH_OLAP_DATABASE = os.path.join(BASE_DIR, 'data', 'db', 'olap.db')
 
     PATH_FIX_DB_SQL = os.path.join(BASE_DIR, 'data', 'sql', 'fix-db.sql')
-    PATH_UPDATE_OLAP_SQL = os.path.join(BASE_DIR, 'data', 'sql', 'update-olap.sql')
+    #PATH_UPDATE_OLAP_SQL = os.path.join(BASE_DIR, 'data', 'sql', 'update-olap.sql')
