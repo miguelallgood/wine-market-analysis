@@ -140,7 +140,7 @@ def update_olap():
         CREATE TABLE Fact_wines (
             fk_wine_id INTEGER,
             fk_region_id INTEGER,
-            fk_country_code INTEGER,
+            fk_country_code VARCHAR,
             ratings_avg INTEGER,
             ratings_count INTEGER,
             calc_avg_price INTEGER,
@@ -162,7 +162,7 @@ def update_olap():
         DROP TABLE IF EXISTS Dim_regions;
         CREATE TABLE Dim_regions (
             region_id INTEGER PRIMARY KEY,
-            fk_country_code INTEGER,
+            fk_country_code VARCHAR,
             region_name VARCHAR,
             FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
         );
