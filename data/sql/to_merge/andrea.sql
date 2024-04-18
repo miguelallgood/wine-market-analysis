@@ -2,47 +2,49 @@
 
 -- Dimension Tables
 
-CREATE TABLE Dim_regions (
+"""CREATE TABLE Dim_regions (
   region_id INTEGER PRIMARY KEY,
   fk_country_id INTEGER,
   region_name VARCHAR
-);
+);"""
 
-CREATE TABLE Dim_countries (
+"""CREATE TABLE Dim_countries (
   country_code VARCHAR PRIMARY KEY,
   country_name VARCHAR
-);
+);"""
 
-CREATE TABLE Dim_wines (
+"""CREATE TABLE Dim_wines (
   wine_id INTEGER PRIMARY KEY,
   wine_name VARCHAR
 );
+"""
 
+-- In manage db it has a plural in the name
 CREATE TABLE Dim_vintages (
-  vintage_id INTEGER PRIMARY KEY,
-  vintage_name VARCHAR
+  vintage_id INTEGER PRIMARY KEY, -- In manage db it has a plural in the name
+  vintage_name VARCHAR-- In manage db it has a plural in the name
 );
 
 
-CREATE TABLE Dim_toplists (
+"""CREATE TABLE Dim_toplists (
 	toplists_id INTEGER PRIMARY KEY,
 	toplists_name VARCHAR,
 	toplists_year INTEGER,
 	toplists_type_wine VARCHAR	
 	);
-
-CREATE TABLE Dim_flavor_groups (
+"""
+"""CREATE TABLE Dim_flavor_groups (
 	flavor_groups_id INTEGER PRIMARY KEY,
 	flavor_groups_name VARCHAR
-);
-
+);"""
+"""
 CREATE TABLE Dim_keywords (
 	keywords_id INTEGER PRIMARY KEY,
 	keywords_name VARCHAR
 );
-
+"""
 -- Fact Tables
-CREATE TABLE Fact_keywords_wine (
+"""CREATE TABLE Fact_keywords_wine (
 	keyword_id INTEGER,
 	fk_flavor_groups INTEGER,
 	fk_wine_id INTEGER,
@@ -52,17 +54,17 @@ CREATE TABLE Fact_keywords_wine (
 	FOREIGN KEY (keyword_id) REFERENCES Dim_keywords (keywords_id),
 	FOREIGN KEY (fk_flavor_groups) REFERENCES Dim_flavor_groups (flavor_groups_id),
 	FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id)
-);
+);"""
 
 
-CREATE TABLE Fact_vintages (
+"""CREATE TABLE Fact_vintages (
   fk_wine_id INTEGER,
   fk_vintages_id INTEGER,
   fk_region_id INTEGER,
   fk_country_code INTEGER,
   fk_last_toplist INTEGER,
-  year_harvest INTEGER,
-  ratings_average INTEGER,
+  year_harvest INTEGER, -- change to year !!!
+  ratings_average INTEGER, -- change to ratings_avg!!!
   ratings_count INTEGER,
   price_euros INTEGER,
   last_rank INTEGER,
@@ -74,51 +76,43 @@ CREATE TABLE Fact_vintages (
   FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code),
   FOREIGN KEY (fk_last_toplist) REFERENCES Dim_toplists(toplists_id)
 );
-
+"""
 -- Inserts
 
 -- Dimentions
 
-INSERT INTO Dim_countries (country_code, country_name)
+"""INSERT INTO Dim_countries (country_code, country_name)
 SELECT DISTINCT code, name
 FROM countries;
-
-INSERT INTO Dim_regions (region_id, fk_country_id, region_name)
+"""
+"""INSERT INTO Dim_regions (region_id, fk_country_id, region_name)
 SELECT DISTINCT id, country_code, name
-FROM regions;
+FROM regions;"""
 
 --OK
-INSERT INTO Dim_wines (wine_id, wine_name)
+"""INSERT INTO Dim_wines (wine_id, wine_name)
 SELECT DISTINCT id, name
-FROM wines ;
+FROM wines ;"""
 
-INSERT INTO Dim_vintages (vintage_id, vintage_name)
+"""INSERT INTO Dim_vintages (vintage_id, vintage_name)
 SELECT DISTINCT id, name
-FROM vintages;
+FROM vintages;"""
 
-INSERT INTO Dim_flavor_groups (flavor_groups_name)
+"""INSERT INTO Dim_flavor_groups (flavor_groups_name)
 SELECT DISTINCT group_name 
 FROM keywords_wine;
-
-INSERT INTO Dim_keywords (keywords_id, keywords_name)
+"""
+"""INSERT INTO Dim_keywords (keywords_id, keywords_name)
 SELECT DISTINCT id, name
-FROM keywords;
+FROM keywords;"""
 
-INSERT INTO Dim_toplists (toplists_id, toplists_name, toplists_year, toplists_type_wine)
-SELECT 
-	id,
-	name,	
-    SUBSTRING(name, 10, 4),
-    TRIM(SUBSTRING(name, CHARINDEX(':', name)+1,100))
-FROM 
-   toplists 
- WHERE country_code = 'global' AND name LIKE '%Vivino%';
+
 -- Facts
 
-INSERT INTO Fact_keywords_wine (keyword_id, fk_flavor_groups, fk_wine_id, count_keyword)
+"""INSERT INTO Fact_keywords_wine (keyword_id, fk_flavor_groups, fk_wine_id, count_keyword)
 SELECT DISTINCT kw.keyword_id, dfg.flavor_groups_id, kw.wine_id, kw.count  
 FROM keywords_wine kw
-JOIN Dim_flavor_groups dfg ON kw.group_name = dfg.flavor_groups_name
+JOIN Dim_flavor_groups dfg ON kw.group_name = dfg.flavor_groups_name"""
 
 
 INSERT INTO Fact_vintages (fk_wine_id,fk_vintages_id, fk_region_id, fk_country_code, year_harvest, ratings_average, ratings_count, price_euros, fk_last_toplist, last_rank)
