@@ -79,22 +79,6 @@ def update_olap():
         olap_insert_query="INSERT INTO Dim_wines (wine_id, wine_name) VALUES (?, ?)"
     )
 
-    # Dim Regions
-    transfer_data_to_olap(
-        message="Creating Dim_regions in OLAP data warehouse...",
-        oltp_select_query="SELECT DISTINCT id, country_code, name FROM regions",
-        olap_table_creation="""
-        DROP TABLE IF EXISTS Dim_regions;
-        CREATE TABLE Dim_regions (
-            region_id INTEGER PRIMARY KEY,
-            fk_country_code VARCHAR,
-            region_name VARCHAR,
-            FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
-        );
-        """,
-        olap_insert_query="INSERT INTO Dim_regions (region_id, fk_country_code, region_name) VALUES (?, ?, ?)"
-    )
-
     # Dim Countries
     transfer_data_to_olap(
         message="Creating Dim_countries in OLAP data warehouse...",
@@ -196,44 +180,6 @@ def update_olap():
         olap_insert_query="INSERT INTO Dim_keywords (keywords_id, keywords_name) VALUES (?,?)"
     )
 
-    # # Fact Vintages
-    # transfer_data_to_olap(
-    #     message="Creating Fact_vintages in OLAP data warehouse...",
-    #     oltp_select_query="""SELECT
-    #         v.id,
-    #         v.wine_id,
-    #         w.region_id,
-    #         r.country_code,
-    #         v.ratings_average,
-    #         v.ratings_count,
-    #         v.year
-
-    #     FROM
-    #         vintages v
-    #     JOIN
-    #         wines w ON w.id = v.wine_id,
-    #         regions r ON w.region_id = r.id;
-    #     """,
-    #     olap_table_creation="""
-    #     DROP TABLE IF EXISTS Fact_vintages;
-    #     CREATE TABLE Fact_vintages (
-    #         fk_vintages_id INTEGER,
-    #         fk_wine_id INTEGER,
-    #         fk_region_id INTEGER,
-    #         fk_country_code INTEGER,
-    #         ratings_avg INTEGER,
-    #         ratings_count INTEGER,
-    #         year INTEGER,
-    #         PRIMARY KEY (fk_vintages_id),
-    #         FOREIGN KEY (fk_vintages_id) REFERENCES Dim_vintages(vintages_id),
-    #         FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
-    #         FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
-    #         FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
-    #     );
-    #     """,
-    #     olap_insert_query="INSERT INTO Fact_vintages (fk_vintages_id, fk_wine_id, fk_region_id, fk_country_code, ratings_avg, ratings_count, year) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    # )
-
     # Fact Grapes
     transfer_data_to_olap(
         message="Creating Fact_grapes in OLAP data warehouse...",
@@ -295,7 +241,6 @@ def update_olap():
             )
             SELECT
                 w.id,
-                w.region_id,
                 r.country_code,
                 w.ratings_average,
                 w.ratings_count, 
@@ -311,7 +256,6 @@ def update_olap():
         DROP TABLE IF EXISTS Fact_wines;
         CREATE TABLE Fact_wines (
             fk_wine_id INTEGER,
-            fk_region_id INTEGER,
             fk_country_code VARCHAR,
             ratings_avg INTEGER,
             ratings_count INTEGER,
@@ -319,11 +263,10 @@ def update_olap():
             calc_weighted_rating INTEGER,
             PRIMARY KEY (fk_wine_id),
             FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
-            FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
             FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code)
             );
         """,
-        olap_insert_query="INSERT INTO Fact_wines (fk_wine_id, fk_region_id, fk_country_code, ratings_avg, ratings_count, calc_avg_price, calc_weighted_rating) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        olap_insert_query="INSERT INTO Fact_wines (fk_wine_id, fk_country_code, ratings_avg, ratings_count, calc_avg_price, calc_weighted_rating) VALUES (?, ?, ?, ?, ?, ?)"
     )
 
     # Fact Vintages
@@ -352,7 +295,6 @@ def update_olap():
         SELECT
             v.id,
             v.wine_id,
-            w.region_id,
             r.country_code,
             v.ratings_average,
             v.ratings_count,
@@ -372,7 +314,6 @@ def update_olap():
         CREATE TABLE Fact_vintages (
             fk_vintages_id INTEGER,
             fk_wine_id INTEGER,
-            fk_region_id INTEGER,
             fk_country_code INTEGER,
             fk_last_toplist INTEGER,
             ratings_avg INTEGER,
@@ -384,13 +325,12 @@ def update_olap():
             PRIMARY KEY (fk_vintages_id),
             FOREIGN KEY (fk_vintages_id) REFERENCES Dim_vintages(vintages_id),
             FOREIGN KEY (fk_wine_id) REFERENCES Dim_wines(wine_id),
-            FOREIGN KEY (fk_region_id) REFERENCES Dim_regions(region_id),
             FOREIGN KEY (fk_country_code) REFERENCES Dim_countries(country_code),
             FOREIGN KEY (fk_last_toplist) REFERENCES Dim_toplists(toplists_id)
         );
         """,
-        olap_insert_query="INSERT INTO Fact_vintages (fk_vintages_id, fk_wine_id, fk_region_id, fk_country_code, ratings_avg, ratings_count, year, price_euros, fk_last_toplist, last_rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    )
+        olap_insert_query="INSERT INTO Fact_vintages (fk_vintages_id, fk_wine_id, fk_country_code, ratings_avg, ratings_count, year, price_euros, fk_last_toplist, last_rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    )    
 
     # Fact keywords wine
     transfer_data_to_olap(
