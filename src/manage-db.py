@@ -370,6 +370,7 @@ def update_olap():
         CREATE VIEW sales_per_wine AS
         WITH Sales_vintage AS (
             SELECT dw.wine_name AS name, 
+            dw.wine_id AS id,
             fv.ratings_count AS volume, 
             (fv.ratings_count* fv.price_euros) AS sales_euro, 
             fv.fk_country_code AS country, 
@@ -379,6 +380,7 @@ def update_olap():
     
         SELECT 
             name, 
+            id,
             COUNT(name) AS numb_vintages, 
             country, 
             ROUND(AVG(rating),1) as avg_rating, 

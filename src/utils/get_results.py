@@ -9,7 +9,8 @@ def highlight_top_wines_1():
     ratings, and uniqueness.
     """
     df_results = select_query_to_pandas("""
-    SELECT name, ROUND(numb_vintages *total_count* avg_rating) AS measure, average_weighted_price, avg_rating, total_count, total_sale, numb_vintages  
+    --SELECT name, ROUND(numb_vintages *total_count* avg_rating) AS measure, average_weighted_price, avg_rating, total_count, total_sale, numb_vintages  
+    SELECT id, name, ROUND(numb_vintages *total_count* avg_rating/1000000) AS measure, average_weighted_price, numb_vintages, avg_rating, total_count, total_sale 
     FROM sales_per_wine spw
     ORDER BY measure DESC
     LIMIT 10
@@ -45,13 +46,28 @@ def highlight_top_wines_2():
     return df_results
 
 
-def prioritize_country(df):
+def prioritize_country():
     """
-    Determines which country to prioritize for marketing based on factors like market potential,
+    Q2: Determines which country to prioritize for marketing based on factors like market potential,
     current sales trends, and budget constraints.
+    Approach: See which countries bring the most revenue, and general metrics for comparing as number of wines, harvests, reviews, avg price.
     """
-    # Logic to be implemented later
-    return pd.DataFrame()  # This will eventually return a DataFrame
+    df_results = select_query_to_pandas("""
+    SELECT 
+        dc.country_name AS country,  
+        COUNT(spw.name) AS count_wines,
+        SUM (spw.numb_vintages) AS count_vintages,
+        SUM(spw.total_count) AS sum_ratings_count, 
+        SUM(spw.total_sale) as sum_sales_euro, 
+        ROUND(AVG (spw.average_weighted_price)) AS avg_price_bottle
+    FROM sales_per_wine spw
+    JOIN Dim_countries dc ON dc.country_code = spw.country 
+    GROUP BY spw.country
+
+    ORDER BY sum_sales_euro DESC
+    LIMIT 5
+    """)
+    return df_results
 
 
 def award_best_wineries():
@@ -68,12 +84,41 @@ def award_best_wineries():
     return df_results
 
 
-def find_wines_by_taste(df, keywords, min_users=10):
+def find_wines_by_taste():
     """
-    Finds all wines that match specific taste keywords confirmed by at least a given number of users.
+    Q4: Finds all wines that match specific taste keywords confirmed by at least a given number of users.
+    Approach: find all wines that match all the listed flavors.
     """
-    # Logic to be implemented later
-    return pd.DataFrame()  # This will eventually return a DataFrame
+    df_results = select_query_to_pandas("""
+    WITH filtered_fact_keywords_wine AS (
+        SELECT 
+            DISTINCT fkw.keyword_id, 
+            dk.keywords_name AS key_word, 
+            fkw.fk_wine_id AS wine_id, 
+            fkw.count_keyword,
+            dw.wine_name AS wine        
+        FROM Fact_keywords_wine fkw 
+        JOIN Dim_keywords dk 
+            ON dk.keywords_id = fkw.keyword_id 
+        JOIN Dim_wines dw 
+            ON dw.wine_id = fkw.fk_wine_id 
+        WHERE dk.keywords_name IN ('coffee', 'toast', 'green apple', 'cream', 'citrus')
+            AND fkw.count_keyword >=10
+    ),
+    match_all AS (
+        SELECT 
+            wine_id, 
+            wine, COUNT(key_word) AS n_matched_flavors, 
+            GROUP_CONCAT(key_word, ', ') AS matched_flavors
+        FROM filtered_fact_keywords_wine
+        GROUP BY wine_id
+        HAVING n_matched_flavors = 5
+        ORDER BY n_matched_flavors DESC, wine ASC
+    )
+    SELECT wine_id, wine
+    FROM match_all
+    """)
+    return df_results 
 
 
 # noinspection SqlDialectInspection,SqlNoDataSourceInspection
@@ -132,12 +177,43 @@ def select_common_grapes_wines():
     return df_results
 
 
-def create_country_vintage_visual(df):
+def create_country_vintage_visual_1():
     """
     Creates visuals for the average wine rating by country and by vintage.
     """
-    # Logic to be implemented later
-    return pd.DataFrame()  # Placeholder for a DataFrame containing the visuals
+
+    sql = """
+        SELECT
+            dc.country_name,
+            AVG(fw.ratings_avg) AS avg_rating
+        FROM
+        Fact_wines fw
+        JOIN
+            Dim_countries dc ON fw.fk_country_code = dc.country_code
+        GROUP BY
+            dc.country_name;
+    """
+    df_results = select_query_to_pandas(sql)
+    return df_results
+
+def create_country_vintage_visual_2():
+    """
+    Creates visuals for the average wine rating by country and by vintage.
+    """
+
+    sql = """
+        SELECT
+            dc.country_name,fv.year,
+            AVG(fv.ratings_avg) AS avg_rating
+        FROM
+        Fact_vintages fv
+        JOIN
+            Dim_countries dc ON fv.fk_country_code = dc.country_code
+        GROUP BY
+            dc.country_name, fv.year;
+    """
+    df_results = select_query_to_pandas(sql)
+    return df_results
 
 
 def recommend_cabernet_sauvignon():
