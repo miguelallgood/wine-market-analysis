@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from utils.get_results import award_best_wineries, recommend_cabernet_sauvignon, select_common_grapes_wines
+from utils.get_results import award_best_wineries, recommend_cabernet_sauvignon, select_common_grapes_wines, \
+    highlight_top_wines_1, highlight_top_wines_2
 
 # Dummy Data Preparation
 # You can replace these with actual database queries or more complex data structures as needed.
@@ -70,14 +71,23 @@ view = st.sidebar.selectbox("Choose a view", [
 ])
 
 if view == "Top 10 Wines":
-    st.header("Top 10 Wines to Increase Sales")
-    st.table(top_10_wines)
-    fig, ax = plt.subplots()
-    ax.bar(top_10_wines["Wine Name"], top_10_wines["Ratings Average"], color='skyblue')
-    plt.xticks(rotation=45, ha="right")
-    plt.xlabel("Wine Name")
-    plt.ylabel("Ratings Average")
-    st.pyplot(fig)
+    df1 = highlight_top_wines_1()
+    df2 = highlight_top_wines_2()
+    formatted_df1 = df1.style.format({
+        "measure": "{:.0f}".format,
+        "avg_rating": "{:.1f}".format,
+        "average_weighted_price": "{:.0f}".format,
+    })
+    st.table(formatted_df1)
+    st.table(df2)
+    # st.header("Top 10 Wines to Increase Sales")
+    # st.table(top_10_wines)
+    # fig, ax = plt.subplots()
+    # ax.bar(top_10_wines["Wine Name"], top_10_wines["Ratings Average"], color='skyblue')
+    # plt.xticks(rotation=45, ha="right")
+    # plt.xlabel("Wine Name")
+    # plt.ylabel("Ratings Average")
+    # st.pyplot(fig)
 
 elif view == "Marketing Priorities":
     st.header("Marketing Budget Prioritization")
