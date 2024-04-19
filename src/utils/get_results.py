@@ -60,8 +60,8 @@ def award_best_wineries():
     innovation, and contribution to the wine industry.
     """
     df_results = select_query_to_pandas("""
-    SELECT dwn.name, fw.num_of_wines, fw.avg_rating, fw.total_ratings, fw.avg_price
-    FROM Fact_Wineries fw LEFT JOIN Dim_Winery_Name dwn ON fw.winery = dwn.id 
+    SELECT dwn.winery_name, fw.num_of_wines, fw.avg_rating, fw.total_ratings, fw.avg_price
+    FROM Fact_Wineries fw LEFT JOIN Dim_Wineries dwn ON fw.fk_winery_id = dwn.winery_id 
     ORDER BY fw.overal_score DESC 
     LIMIT 3  
     """)
