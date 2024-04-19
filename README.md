@@ -19,6 +19,7 @@ This project is about the company Wiwino, proudly active in the wine industry. D
 6. We would like to create a country leaderboard. Come up with a visual that shows the **average wine rating for each `country`**. Do the same for the `vintages`.
 7. One of our VIP clients likes _Cabernet Sauvignon_ and would like our top 5 recommendations. Which wines would you recommend to him?
 
+The end result is a dashboard in streamlit that provides an answer to all the above questions.
 
 ## Table of Contents
 
@@ -29,6 +30,7 @@ This project is about the company Wiwino, proudly active in the wine industry. D
 ## 🤖 File Structure 
 
 ```
+├── README.md
 ├── assets
 ├── data
 │   ├── db
@@ -36,28 +38,27 @@ This project is about the company Wiwino, proudly active in the wine industry. D
 │   │   ├── olap.db
 │   │   └── raw.db
 │   └── sql
-│       ├── fix-db.sql
-│       ├── to-merge (to delete)
-│       │   ├── andrea.sql
-│       │   ├── gerrit.sql
-│       │   ├── miguel.sql
-│       │   ├── nathalie.sql
-│       │   ├── tablecreation.sql
-│       │   └── tablepopulation.sql
-│       └── update-olap.sql
-├── README.md
+│       └── fix-db.sql
+├── requirements.txt
 └── src
+    ├── __init__.py
+    ├── __pycache__
+    │   └── config.cpython-310.pyc
     ├── config.py
-    ├── __pycache
-    ├── streamlit
-    │   ├── app.py
-    ├── utils.py
-    └── manage-db.py 
+    ├── manage-db.py
+    ├── streamlit_app.py
+    └── utils
+        ├── __init__.py
+        ├── __pycache__
+        │   ├── __init__.cpython-310.pyc
+        │   ├── db.cpython-310.pyc
+        │   └── get_results.cpython-310.pyc
+        ├── db.py
+        └── get_results.py
 ```
 
-
 ## 🎈 Streamlit 
-
+[Streamlit Link](https://wine-market-analysis-gv49svrnq27arwoagnw9fn.streamlit.app/)
 
 ## 🔍 Contributors
 - [Andrea Haritçalde](https://github.com/andreaharit)
