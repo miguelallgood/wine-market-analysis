@@ -36,3 +36,12 @@ def select_query_to_pandas(query):
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
+
+
+def execute_sql(message, sql_query):
+    print(message)
+    conn = sqlite3.connect(Config.PATH_OLAP_DATABASE)
+    cursor = conn.cursor()
+    cursor.execute(sql_query)
+    conn.commit()
+    conn.close()

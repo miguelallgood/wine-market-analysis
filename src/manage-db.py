@@ -3,7 +3,7 @@ import shutil
 import sqlite3
 
 from config import Config
-from utils.db import transfer_data_to_olap
+from utils.db import transfer_data_to_olap, execute_sql
 
 
 def main():
@@ -64,7 +64,7 @@ def update_olap():
         """,
         olap_insert_query="INSERT INTO Dim_wineries (winery_id, winery_name) VALUES (?, ?)"
     )
-  
+
     # Dim Wines
     transfer_data_to_olap(
         message="Creating Dim_wines in OLAP data warehouse...",
@@ -165,19 +165,19 @@ def update_olap():
 
     # Dim keywords
     transfer_data_to_olap(
-    message="Creating Dim_keywords in OLAP data warehouse...",
-    oltp_select_query="""
+        message="Creating Dim_keywords in OLAP data warehouse...",
+        oltp_select_query="""
         SELECT DISTINCT id, name
         FROM keywords;
     """,
-    olap_table_creation="""
+        olap_table_creation="""
     DROP TABLE IF EXISTS Dim_keywords;
     CREATE TABLE Dim_keywords (
         keywords_id INTEGER PRIMARY KEY,
 	    keywords_name VARCHAR
     );
     """,
-    olap_insert_query="INSERT INTO Dim_keywords (keywords_id, keywords_name) VALUES (?,?)"
+        olap_insert_query="INSERT INTO Dim_keywords (keywords_id, keywords_name) VALUES (?,?)"
     )
 
     # Fact Grapes
@@ -196,7 +196,7 @@ def update_olap():
         olap_insert_query="INSERT INTO Fact_grapes (fk_grape_id, wines_count) VALUES (?, ?)"
     )
 
-      # Fact Wineries
+    # Fact Wineries
     transfer_data_to_olap(
         message="Creating Fact_wineries in OLAP data warehouse...",
         oltp_select_query="""
@@ -269,7 +269,6 @@ def update_olap():
         olap_insert_query="INSERT INTO Fact_wines (fk_wine_id, fk_country_code, ratings_avg, ratings_count, calc_avg_price, calc_weighted_rating) VALUES (?, ?, ?, ?, ?, ?)"
     )
 
-
     # Fact Vintages
     transfer_data_to_olap(
         message="Creating Fact_vintages in OLAP data warehouse...",
@@ -333,7 +332,7 @@ def update_olap():
         olap_insert_query="INSERT INTO Fact_vintages (fk_vintages_id, fk_wine_id, fk_country_code, ratings_avg, ratings_count, year, price_euros, fk_last_toplist, last_rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )    
 
-  # Fact keywords wine
+    # Fact keywords wine
     transfer_data_to_olap(
         message="Creating Fact_keywords_wine in OLAP data warehouse...",
         oltp_select_query="""
@@ -363,21 +362,34 @@ def update_olap():
         olap_insert_query="INSERT INTO Fact_keywords_wine (keyword_id, fk_flavor_groups, fk_wine_id, count_keyword) VALUES (?, ?, ?, ?)"
     )
 
-
-
-
-
-
-
-
-
+    # Create view that and aggregation from vintages. It shows a summary of measures (name, number of vintages,
+    # number of reviews, avg weighted price, country and sales = sum(review_count*price))
+    execute_sql(
+        message="Creating view sales_per_wine in OLAP data warehouse...",
+        sql_query="""
+        CREATE VIEW sales_per_wine AS
+        WITH Sales_vintage AS (
+            SELECT dw.wine_name AS name, 
+            fv.ratings_count AS volume, 
+            (fv.ratings_count* fv.price_euros) AS sales_euro, 
+            fv.fk_country_code AS country, 
+            fv.ratings_avg as rating
+            FROM Fact_vintages fv  
+            JOIN Dim_wines dw ON dw.wine_id = fv.fk_wine_id)
     
-
-
-
-
-
-    print("Updating OLAP data warehouse...")
+        SELECT 
+            name, 
+            COUNT(name) AS numb_vintages, 
+            country, 
+            ROUND(AVG(rating),1) as avg_rating, 
+            SUM(volume) AS total_count, 
+            ROUND(SUM(sales_euro),0) AS total_sale, 
+            ROUND(SUM(sales_euro)/SUM(volume),0) AS average_weighted_price
+            FROM Sales_vintage
+        GROUP BY name
+        ORDER BY total_sale DESC, total_count DESC 
+        """
+    )
 
 
 if __name__ == "__main__":

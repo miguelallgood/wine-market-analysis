@@ -3,12 +3,46 @@ import pandas as pd
 from utils.db import select_query_to_pandas
 
 
-def highlight_top_wines(df):
+def highlight_top_wines_1():
     """
     Highlights 10 wines to increase sales based on specific criteria such as sales trends,
     ratings, and uniqueness.
     """
-    return pd.DataFrame()  # This will eventually return a DataFrame
+    df_results = select_query_to_pandas("""
+    SELECT name, ROUND(numb_vintages *total_count* avg_rating) AS measure, average_weighted_price, avg_rating, total_count, total_sale, numb_vintages  
+    FROM sales_per_wine spw
+    ORDER BY measure DESC
+    LIMIT 10
+    """)
+    return df_results
+
+
+def highlight_top_wines_2():
+    """
+    Highlights 10 wines to increase sales based on specific criteria such as sales trends,
+    ratings, and uniqueness.
+    """
+    df_results = select_query_to_pandas("""
+    WITH top_types AS (
+        SELECT fv.fk_wine_id AS wine_id, SUM(fv.ratings_count) as total_reviews, dt.toplists_type_wine as type_wine
+        FROM Fact_vintages fv 
+        JOIN Dim_toplists dt ON dt.toplists_id = fv.fk_last_toplist
+        GROUP BY fv.fk_wine_id
+        ORDER BY total_reviews DESC
+    )
+    
+    SELECT top_types.wine_id, dw.wine_name, spw.total_count , type_wine, spw.average_weighted_price, spw.numb_vintages, spw.total_sale  
+    FROM top_types
+    JOIN Dim_wines dw ON dw.wine_id = top_types.wine_id
+    JOIN sales_per_wine spw ON spw.name = dw.wine_name
+    WHERE type_wine IN (SELECT DISTINCT type_wine
+    FROM top_types
+    LIMIT 5) 
+    AND numb_vintages > 5
+    ORDER BY total_count DESC
+    LIMIT 10
+    """)
+    return df_results
 
 
 def prioritize_country(df):
