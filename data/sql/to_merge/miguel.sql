@@ -39,7 +39,7 @@
 SELECT dw.wine_name AS wine_name, fw.ratings_avg, fw.ratings_count
 FROM Fact_wines fw
 INNER JOIN Dim_wines dw ON dw.wine_id = fw.fk_wine_id
-WHERE dw.wine_name LIKE 'Cabernet Sauvignon%'  -- Focus on relevant keywords
+WHERE dw.wine_name LIKE 'Cabernet Sauvignon%'  
   OR dw.wine_name LIKE '%Blend%' 
-ORDER BY fw.ratings_avg DESC, fw.ratings_count DESC -- Order results by ratings_average and ratings_count
-LIMIT 5; -- Limit the results to the top 5 wines
+ORDER BY fw.ratings_avg DESC, fw.ratings_count DESC
+LIMIT 5; 
