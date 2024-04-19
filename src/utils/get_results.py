@@ -51,20 +51,43 @@ def select_common_grapes_wines(df):
     return pd.DataFrame()  # This will eventually return a DataFrame
 
 
-def create_country_vintage_visual(df):
+def create_country_vintage_visual():
     """
     Creates visuals for the average wine rating by country and by vintage.
     """
-    # Logic to be implemented later
-    return pd.DataFrame()  # Placeholder for a DataFrame containing the visuals
+    df_results = select_query_to_pandas("""
+        SELECT
+            dc.country_name,
+            AVG(fw.ratings_avg) AS avg_rating
+        FROM
+            Fact_wines fw
+        JOIN
+            Dim_countries dc ON fw.fk_country_code = dc.country_code
+        GROUP BY
+            dc.country_name; 
+        """)
+    return df_results
 
-
-def recommend_cabernet_sauvignon(df):
+def recommend_cabernet_sauvignon():
     """
     Recommends the top 5 Cabernet Sauvignon wines to a VIP client based on ratings and reviews.
     """
-    # Logic to be implemented later
-    return pd.DataFrame()  # This will eventually return a DataFrame
+    df_results = select_query_to_pandas("""
+        SELECT 
+            dw.wine_name AS wine_name, fw.ratings_avg, fw.ratings_count
+        FROM 
+            Fact_wines fw
+        INNER JOIN 
+            Dim_wines dw ON dw.wine_id = fw.fk_wine_id
+        WHERE 
+            dw.wine_name LIKE 'Cabernet Sauvignon%'  -- Focus on relevant keywords
+        OR 
+            dw.wine_name LIKE '%Blend%' 
+        ORDER BY 
+            fw.ratings_avg DESC, fw.ratings_count DESC -- Order results by ratings_average and ratings_count
+        LIMIT 5; 
+    """)
+    return df_results
 
 
 if __name__ == "__main__":
