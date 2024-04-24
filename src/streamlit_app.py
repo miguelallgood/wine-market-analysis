@@ -146,10 +146,25 @@ elif view == "Top Rated Accessible Wines":
 elif view == "Country & Vintage Ratings":
     st.header("wines average rating per country")
     df = create_country_vintage_visual_1()
-    st.table(df)
+    formatted_df = df.rename(columns={
+        "country_name": "Country",
+        "avg_rating": "Average Rating"
+    })
+    formatted_df = formatted_df.style.format({
+        "Average Rating": "{:.1f}".format
+    })
+    st.table(formatted_df)
     st.header("vintages average rating per country ")
     df = create_country_vintage_visual_2()
-    st.table(df)
+    formatted_df = df.rename(columns={
+        "country_name": "Country",
+        "year": "Vintage Year",
+        "avg_rating": "Average Rating"
+    })
+    formatted_df = formatted_df.style.format({
+        "Average Rating": "{:.1f}".format
+    })
+    st.table(formatted_df)
 
 
 # _____Question7_______
